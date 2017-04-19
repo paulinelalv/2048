@@ -109,7 +109,7 @@ public class Grille implements Parametres, Cloneable {
     }
 
     private void fusion(Case c, boolean valider) {
-		score+=(c.getValeur() * 2);
+		score+=(c.getValeur() * 2);		//Le score est incrementer de la valeur de la nouvelle tuile
         c.setValeur(c.getValeur() * 2, valider);
         if (this.valeurMax < c.getValeur()) {
             this.valeurMax = c.getValeur();
@@ -147,7 +147,7 @@ public class Grille implements Parametres, Cloneable {
                     this.fusion(extremites[rangee], valider);
                     extremites[rangee] = voisin.getVoisinDirect(-direction);
                     this.grille.remove(voisin);
-					if (valider){
+					if (valider){	//On modifie l'interface graphique que si la coup n'est pas une simulation
 						voisin.masquer();
 					}
                     this.deplacerCasesRecursif(extremites, rangee, direction, compteur + 1, valider);
@@ -196,7 +196,7 @@ public class Grille implements Parametres, Cloneable {
     }
 
     public Object[] victory(Pane fond) {
-		Object[] sortie= new Object[2];
+		Object[] sortie= new Object[2];		//On retourne le Pane et le Label dans un tableau afin de retourner les deux
         System.out.println("Bravo ! Vous avez atteint " + this.valeurMax);
 		Pane p = new Pane();
 		Label l= new Label("Bravo ! Vous avez atteint " + this.valeurMax);
@@ -204,9 +204,9 @@ public class Grille implements Parametres, Cloneable {
 		p.getStyleClass().add("panneauVic");
         fond.getChildren().add(p);
         p.getChildren().add(l);
-		p.setLayoutX(25);
+		p.setLayoutX(25);		//On les place
         p.setLayoutY(350);
-		p.setVisible(true);
+		p.setVisible(true);		//On les affiche
         l.setVisible(true);
 		sortie[0]=l;
 		sortie[1]=p;
@@ -257,27 +257,16 @@ public class Grille implements Parametres, Cloneable {
     }
 
 	
-	public Object clone() {
-		Grille o = new Grille();
-		// On récupère l'instance à renvoyer par l'appel de la méthode super.clone()
+	public Object clone() {		//Permet de faire une copie de la grille
+		Grille o = new Grille();	//On créé une nouvelle grille
 		o.score=this.score;
 		for (Case i : this.grille){
-			Case i2= (Case) i.clone();
+			Case i2= (Case) i.clone();	//On copie chaque case de la grille
 			i2.setGrille(o);
-			o.grille.add(i2);
+			o.grille.add(i2);			//On les ajoute à la nouvelle grille
 		}
-		
 		// on renvoie le clone
 		return o;
 	}
 	
-	public boolean estComplete(int colonne){
-		int somme=0;
-        for (Case c : this.grille) {
-			if (c.getX()==colonne){
-				somme+=1;
-			}
-        }
-		return somme==4;
-	}
 }

@@ -32,19 +32,19 @@ public class FXMLDocumentController implements Initializable, Parametres{
      * Ces variables sont ajoutées à la main et portent le même nom que les fx:id dans Scene Builder
      */
     @FXML
-    private Label score; // value will be injected by the FXMLLoader
+    private Label score;
     @FXML
-    private Label max;
+    private Label max;	//La valeur de la tuile la plus haute
 	@FXML
     private Label objectif;
 	@FXML
-    private Label deplacement;
+    private Label deplacement;	//Nombre de deplacement fait
 	@FXML
     private GridPane grille;
     @FXML
     private Pane fond; // panneau recouvrant toute la fenêtre
 	@FXML
-	private Pane messa;
+	private Pane messa;	//Message Victoire/ Defaite
 	@FXML 
 	private Label mess;
 
@@ -57,21 +57,16 @@ public class FXMLDocumentController implements Initializable, Parametres{
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 		grille.getStyleClass().add("gridpane");
+		g.nouvelleCase(fond);		//On commence par ajouter 2 cases
 		g.nouvelleCase(fond);
-		g.nouvelleCase(fond);
-		max.setText(Integer.toString(g.getValeurMax()));
-		objectif.setText(Integer.toString(obj));
-		messa= new Pane();
+		max.setText(Integer.toString(g.getValeurMax()));	//La tuile avec ma plus grande valeur sert de max
+		objectif.setText(Integer.toString(obj));			//L'objectif est celui ecrit dans Parametres
+		messa= new Pane();									//On créé le message Victoire/Defaite mais on le masque
 		mess= new Label();
 		mess.setVisible(false);
 		messa.setVisible(false);
 	}
 	
-	
-    /*
-     * Méthodes listeners pour gérer les événements (portent les mêmes noms que
-     * dans Scene Builder
-     */
     /*@FXML
     private void handleDragAction(MouseEvent event) {
         System.out.println("Glisser/déposer sur la grille avec la souris");
@@ -105,13 +100,17 @@ public class FXMLDocumentController implements Initializable, Parametres{
     }*/
 	@FXML
 	public void handle(MouseEvent me){ //Appuie sur bouton aide
-		Grille g2= (Grille) g.clone();
+		Grille g2= (Grille) g.clone();	//On fait une copie de la grille, c'est ici qu'on testera les deplacements
+										// pour choisir le meilleur, sans modifier la vraie grille
+										//On gardera le deplacement qui produit le score le + haut
 		int scoreMax=g.getScore();
 		int direction=0;
-		boolean b2;
+		boolean b2;						//Représente si le deplacement est possible
 		b2=g2.lanceurDeplacerCases(GAUCHE, false); //on simule un deplacement vers la gauche
+													//Le false en argument montre que l'on simule seulement
+													//Il empeche la modification de l'inteface graphique
 		if (b2){
-			scoreMax=g2.getScore();
+			scoreMax=g2.getScore();		//On retient ce score comme scoreMax
 			direction= GAUCHE;
 		}
 		g2= (Grille) g.clone();
@@ -132,32 +131,32 @@ public class FXMLDocumentController implements Initializable, Parametres{
 			scoreMax=g2.getScore();
 			direction= BAS;
 		}
-		b2 = g.lanceurDeplacerCases(direction, true);
-		max.setText(Integer.toString(g.getValeurMax()));
+		b2 = g.lanceurDeplacerCases(direction, true);	//On effectue le vrai deplacement
+		max.setText(Integer.toString(g.getValeurMax()));	//On met à jour les labels
 		score.setText(Integer.toString(g.getScore()));
 		deplacement.setText(Integer.toString(Integer.parseInt(deplacement.getText()) + 1));
-		if (g.partieFinie()) {
+		if (g.partieFinie()) {		//Si la partie est perdue
 			g.gameOver(fond);
 		}
-		if (mess.isVisible()){
+		if (mess.isVisible()){		//Permet de supprimer le message de victoire lorsque l'utilisateur continue à jouer
 			mess.setVisible(false);
 			messa.setVisible(false);
 		}
-		if (g.getValeurMax()>=obj){
-			Object[] messVic=g.victory(fond);
-			mess=(Label) messVic[0];
+		if (g.getValeurMax()>=obj){	//Si il a atteint l'objectif
+			Object[] messVic=g.victory(fond);	//On recupere le Label et le Pane dans un tableau
+			mess=(Label) messVic[0];			
 			messa=(Pane) messVic[1];
-			obj*=2;
+			obj*=2;								//L'objectif double
 			objectif.setText(Integer.toString(obj));
 		}
 		if (b2) {
-			g.nouvelleCase(fond);
+			g.nouvelleCase(fond);			//On ajoute une nouvelle case
 		}
 	}
 
 	@FXML
-	public void handleall(MouseEvent me){
-		while (!g.partieFinie()){
+	public void handleall(MouseEvent me){	//Termine le jeu d'un coup
+		while (!g.partieFinie()){			//Même stratégie que pour 1 coup, répetéé tant que la partie n'est pas finie
 			Grille g2= (Grille) g.clone();
 			int scoreMax=g.getScore();
 			int direction=0;
@@ -210,7 +209,7 @@ public class FXMLDocumentController implements Initializable, Parametres{
 		g.gameOver(fond);
 	}
     @FXML
-    public void keyPressed(KeyEvent ke) {
+    public void keyPressed(KeyEvent ke) {	//Lorsque l'utilisateur appuie sur une touche
         String touche = ke.getText();
 		int direction=0;
         if (touche.compareTo("q") == 0) {
@@ -222,17 +221,14 @@ public class FXMLDocumentController implements Initializable, Parametres{
 		} else if (touche.compareTo("z") == 0) {
 			direction = HAUT;
 		}
-		boolean b2 = g.lanceurDeplacerCases(direction, true);
-		max.setText(Integer.toString(g.getValeurMax()));
+		boolean b2 = g.lanceurDeplacerCases(direction, true);		//On effectue le deplacement
+		max.setText(Integer.toString(g.getValeurMax()));			//On met à jour les Labels
 		score.setText(Integer.toString(g.getScore()));
 		deplacement.setText(Integer.toString(Integer.parseInt(deplacement.getText()) + 1));
-		if (b2) {
-			g.nouvelleCase(fond);
-		}
-		if (g.partieFinie()) {
+		if (g.partieFinie()) { //Si la partie est perdue
 			g.gameOver(fond);
 		}
-		if (mess.isVisible()){
+		if (mess.isVisible()){	//Permet de supprimer le message de victoire lorsque l'utilisateur continue à jouer
 			mess.setVisible(false);
 			messa.setVisible(false);
 		}
@@ -242,6 +238,9 @@ public class FXMLDocumentController implements Initializable, Parametres{
 			messa=(Pane) messVic[1];
 			obj*=2;
 			objectif.setText(Integer.toString(obj));
+		}
+		if (b2) {
+			g.nouvelleCase(fond);
 		}
         /*Task task = new Task<Void>() { // on définit une tâche parallèle pour mettre à jour la vue
             @Override

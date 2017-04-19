@@ -19,7 +19,7 @@ public class Case implements Parametres, Cloneable {
 
     private int x, y, valeur;
 	private Pane p;
-	private Label l;
+	private Label l;		//Correspond au numero de la tuile
     private Grille grille;
 
     public Case(int abs, int ord, int v, Pane fond) {
@@ -29,23 +29,22 @@ public class Case implements Parametres, Cloneable {
 		p= new Pane();
 		String val= ""+v;
 		l= new Label(val); //Correspond à la valeur de la tuile
-        // utilisation de styles pour la grille et la tuile (voir styles.css)
         p.getStyleClass().add("pane");	//On associe à p le style .pane
 		l.getStyleClass().add("tuile"+valeur);
         GridPane.setHalignment(l, HPos.CENTER);
-        fond.getChildren().add(p);		
-        p.getChildren().add(l);
+        fond.getChildren().add(p);		//Le panel se trouve dans la fenetre
+        p.getChildren().add(l);			//Le Label se trouve dans le Panel
 
-        p.setLayoutX(x*(397 / 4)+25);
+        p.setLayoutX(x*(397 / 4)+25);	//On place la tuile
         p.setLayoutY(y*(397 / 4)+192);
-		p.setVisible(false);
+		p.setVisible(false);			//On la rend invisible pour l'instant
         l.setVisible(false);
     }
-	public void rendreVisible(){
+	public void rendreVisible(){ //Sert à rendre visible la tuile
 		p.setVisible(true);
         l.setVisible(true);
 	}
-	public void masquer(){
+	public void masquer(){		//Sert à masquer la tuile
 		p.setVisible(false);
         l.setVisible(false);
 	}
@@ -62,30 +61,30 @@ public class Case implements Parametres, Cloneable {
         return this.y;
     }
 
-    public void setX(int x, boolean valider) {
+    public void setX(int x, boolean valider) { 
         this.x = x;
-		if (valider){
+		if (valider){			//On modifie l'interface graphique que si la coup n'est pas une simulation
 			p.setLayoutX(x*(397 / 4)+25);
 		}
     }
 
     public void setY(int y, boolean valider) {
         this.y = y;
-		if (valider){
+		if (valider){			//On modifie l'interface graphique que si la coup n'est pas une simulation
 			p.setLayoutY(y*(397 / 4)+192);
 		}
     }
 
     public void setValeur(int valeur, boolean valider) {
         this.valeur = valeur;
-		if (valider){
-			l.setVisible(false);
+		if (valider){			//On modifie l'interface graphique que si la coup n'est pas une simulation
+			l.setVisible(false);  //On efface l'ancien Label
 			String val= ""+valeur;
 			l= new Label(val);
 			l.getStyleClass().add("tuile"+valeur);
 			GridPane.setHalignment(l, HPos.CENTER);
 			p.getChildren().add(l);
-			l.setVisible(true);
+			l.setVisible(true); //On le remplace par le nouveau
 		}
     }
 
@@ -158,15 +157,13 @@ public class Case implements Parametres, Cloneable {
         return "Case(" + this.x + "," + this.y + "," + this.valeur + ")";
     }
 	
-	public Object clone() {
+	public Object clone() { //On fait une copie de la tuile
 		Object o = null;
 		try {
-			// On récupère l'instance à renvoyer par l'appel de la 
-			// méthode super.clone()
+			// On récupère l'instance à renvoyer par l'appel de la méthode super.clone()
 			o = super.clone();
 		} catch(CloneNotSupportedException cnse) {
-			// Ne devrait jamais arriver car nous implémentons 
-			// l'interface Cloneable
+			// Ne devrait jamais arriver car nous implémentons l'interface Cloneable
 			cnse.printStackTrace(System.err);
 		}
 		// on renvoie le clone
