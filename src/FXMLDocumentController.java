@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -24,7 +18,7 @@ import javafx.scene.text.Font;
 
 /**
  *
- * @author Guy Ju
+ * @author Guy Junior
  */
 public class FXMLDocumentController implements Initializable, Parametres{
     /*
@@ -33,18 +27,34 @@ public class FXMLDocumentController implements Initializable, Parametres{
      */
     @FXML
     private Label score;
+	
+	/**
+	 * La valeur de la tuile la plus haute.
+	 */
     @FXML
-    private Label max;	//La valeur de la tuile la plus haute
+	private Label max;	
 	@FXML
     private Label objectif;
+	
+	/**
+	 * Nombre de deplacement fait.
+	 */
 	@FXML
-    private Label deplacement;	//Nombre de deplacement fait
+	private Label deplacement;	
 	@FXML
     private GridPane grille;
+	
+	/**
+	 * Panneau recouvrant toute la fenêtre.
+	 */
     @FXML
-    private Pane fond; // panneau recouvrant toute la fenêtre
+    private Pane fond; 
+	
+	/**
+	 * Message Victoire/ Defaite.
+	 */
 	@FXML
-	private Pane messa;	//Message Victoire/ Defaite
+	private Pane messa;
 	@FXML 
 	private Label mess;
 
@@ -53,11 +63,15 @@ public class FXMLDocumentController implements Initializable, Parametres{
     private Label c ;
 	private Grille g = new Grille();
 	private int obj=OBJECTIF;
-
+	private int departClicX, departClicY; //Utilisées pour le deplacement souris
+	
+	/**
+	 * Initialise la partie.
+	 */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 		grille.getStyleClass().add("gridpane");
-		g.nouvelleCase(fond);		//On commence par ajouter 2 cases
+		g.nouvelleCase(fond);								//On commence par ajouter 2 cases
 		g.nouvelleCase(fond);
 		max.setText(Integer.toString(g.getValeurMax()));	//La tuile avec ma plus grande valeur sert de max
 		objectif.setText(Integer.toString(obj));			//L'objectif est celui ecrit dans Parametres
@@ -67,152 +81,131 @@ public class FXMLDocumentController implements Initializable, Parametres{
 		messa.setVisible(false);
 	}
 	
-    /*@FXML
-    private void handleDragAction(MouseEvent event) {
-        System.out.println("Glisser/déposer sur la grille avec la souris");
-        double x = event.getX();//translation en abscisse
-        double y = event.getY();//translation en ordonnée
-        if (x > y) {
-            for (int i = 0; i < grille.getChildren().size(); i++) { //pour chaque colonne
-                //for (int j = 0; j < grille.getRowConstraints().size(); j++) { //pour chaque ligne
-                System.out.println("ok1");
-                grille.getChildren().remove(i);*/
-
-                /*Node tuile = grille.getChildren().get(i);
-                 if (tuile != null) {
-                 int rowIndex = GridPane.getRowIndex(tuile);
-                 int rowEnd = GridPane.getRowIndex(tuile);
-                 }*/
-                // }
-            /*}
-        } else if (x < y) {
-            System.out.println("ok2");
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    Pane p = new Pane();
-                    p.getStyleClass().add("pane");
-                    grille.add(p, i, j);
-                    p.setVisible(true);
-                    grille.getStyleClass().add("gridpane");
-                }
-            }
-        }
-    }*/
+	/**
+	 * Retient la position de depart de la souris pour les deplacements souris.
+	 */
 	@FXML
-	public void handle(MouseEvent me){ //Appuie sur bouton aide
-		Grille g2= (Grille) g.clone();	//On fait une copie de la grille, c'est ici qu'on testera les deplacements
-										// pour choisir le meilleur, sans modifier la vraie grille
-										//On gardera le deplacement qui produit le score le + haut
+	private void handleD (MouseEvent event){
+		departClicX = (int) event.getX();	//Position abscisse de la souris lors du debut du clic
+        departClicY = (int) event.getY();	//Position ordonné de la souris lors du debut du clic
+	}
+	
+	/**
+	 * Lanceur du deplacement normal souris. Lorsque l'utilisateur deplace avec la souris. 
+	 */
+    @FXML
+    private void handleDragAction(MouseEvent event) {
+        int x = (int) event.getX();			//Position abscisse de la souris à la fin du clic
+        int y = (int) event.getY();			//Position ordonné de la souris à la fin du clic
+		int direction=0;
+		int diffX=x-departClicX;			//Différence entre l'arrivé et le départ
+		int diffY=y-departClicY;
+        if (Math.abs(diffX) > Math.abs(diffY)) {		//On prend le deplacement le plus important entre le vertical et l'horizontal
+            if (diffX<-10){								/*Il faut que le deplacement de la souris soit relativement important
+														pour declancher le deplacement des tuiles*/
+				direction=GAUCHE;
+			}else if (diffX>10){
+				direction=DROITE;
+			}
+		} else {
+			if (diffY<-10){
+				direction=HAUT;
+			}else if (diffY>10){
+				direction=BAS;
+			}
+		}
+		lancerDeplacerCase(direction);
+	}
+	
+	/**
+	 * Lanceur de l'aide pour 1 deplacement. Lorsque l'on appuie sur le bonton Aide.
+	 */
+	@FXML
+	public void handle(MouseEvent me){ 
+		Grille g2= (Grille) g.clone();				/*On fait une copie de la grille, c'est ici qu'on testera les deplacements
+													pour choisir le meilleur, sans modifier la vraie grille
+													On gardera le deplacement qui produit le score le + haut*/
 		int scoreMax=g.getScore();
 		int direction=0;
-		boolean b2;						//Représente si le deplacement est possible
-		b2=g2.lanceurDeplacerCases(GAUCHE, false); //on simule un deplacement vers la gauche
-													//Le false en argument montre que l'on simule seulement
-													//Il empeche la modification de l'inteface graphique
+		boolean b2;									//Représente si le deplacement est possible
+		b2=g2.lanceurDeplacerCases(GAUCHE, false);	/*On simule un deplacement vers la gauche
+													Le false en argument montre que l'on simule seulement
+													Il empeche la modification de l'inteface graphique*/
 		if (b2){
-			scoreMax=g2.getScore();		//On retient ce score comme scoreMax
+			scoreMax=g2.getScore();					//On retient ce score comme scoreMax
 			direction= GAUCHE;
 		}
 		g2= (Grille) g.clone();
-		b2=g2.lanceurDeplacerCases(HAUT, false); //on simule un deplacement vers le haut
+		b2=g2.lanceurDeplacerCases(HAUT, false);	//On simule un deplacement vers le haut
 		if (b2 && g2.getScore()>=scoreMax){
 			scoreMax=g2.getScore();
 			direction= HAUT;
 		}
 		g2= (Grille) g.clone();
-		b2=g2.lanceurDeplacerCases(DROITE, false); //on simule un deplacement vers la droite
+		b2=g2.lanceurDeplacerCases(DROITE, false);	//On simule un deplacement vers la droite
 		if (b2 && g2.getScore()>=scoreMax){
 			scoreMax=g2.getScore();
 			direction= DROITE;
 		}
 		g2= (Grille) g.clone();
-		b2=g2.lanceurDeplacerCases(BAS, false); //on simule un deplacement vers le bas
+		b2=g2.lanceurDeplacerCases(BAS, false);		//On simule un deplacement vers le bas
 		if (b2 && g2.getScore()>=scoreMax){
-			scoreMax=g2.getScore();
 			direction= BAS;
 		}
-		b2 = g.lanceurDeplacerCases(direction, true);	//On effectue le vrai deplacement
-		max.setText(Integer.toString(g.getValeurMax()));	//On met à jour les labels
-		score.setText(Integer.toString(g.getScore()));
-		deplacement.setText(Integer.toString(Integer.parseInt(deplacement.getText()) + 1));
-		if (g.partieFinie()) {		//Si la partie est perdue
-			g.gameOver(fond);
-		}
-		if (mess.isVisible()){		//Permet de supprimer le message de victoire lorsque l'utilisateur continue à jouer
-			mess.setVisible(false);
-			messa.setVisible(false);
-		}
-		if (g.getValeurMax()>=obj){	//Si il a atteint l'objectif
-			Object[] messVic=g.victory(fond);	//On recupere le Label et le Pane dans un tableau
-			mess=(Label) messVic[0];			
-			messa=(Pane) messVic[1];
-			obj*=2;								//L'objectif double
-			objectif.setText(Integer.toString(obj));
-		}
-		if (b2) {
-			g.nouvelleCase(fond);			//On ajoute une nouvelle case
-		}
+		lancerDeplacerCase(direction);
 	}
-
+	/**
+	 * Lanceur pour que l'Ia termine la partie. Lorsque l'on appuie sur le bouton Terminer.
+	 * Même procédé que pour l'aide.
+	 */
 	@FXML
-	public void handleall(MouseEvent me){	//Termine le jeu d'un coup
-		while (!g.partieFinie()){			//Même stratégie que pour 1 coup, répetéé tant que la partie n'est pas finie
+	public void handleall(MouseEvent me){	
+		while (!g.partieFinie()){				/*Même stratégie que pour 1 coup, 
+												répetéé tant que la partie n'est pas finie*/
 			Grille g2= (Grille) g.clone();
 			int scoreMax=g.getScore();
 			int direction=0;
 			boolean b2;
-			b2=g2.lanceurDeplacerCases(GAUCHE, false); //on simule un deplacement vers la gauche
+			b2=g2.lanceurDeplacerCases(GAUCHE, false);
 			if (b2){
 				scoreMax=g2.getScore();
 				direction= GAUCHE;
 			}
 			g2= (Grille) g.clone();
-			b2=g2.lanceurDeplacerCases(HAUT, false); //on simule un deplacement vers le haut
+			b2=g2.lanceurDeplacerCases(HAUT, false); 
 			if (b2 && g2.getScore()>=scoreMax){
 				scoreMax=g2.getScore();
 				direction= HAUT;
 			}
 			g2= (Grille) g.clone();
-			b2=g2.lanceurDeplacerCases(DROITE, false); //on simule un deplacement vers la droite
+			b2=g2.lanceurDeplacerCases(DROITE, false); 
 			if (b2 && g2.getScore()>=scoreMax){
 				scoreMax=g2.getScore();
 				direction= DROITE;
 			}
 			g2= (Grille) g.clone();
-			b2=g2.lanceurDeplacerCases(BAS, false); //on simule un deplacement vers le bas
+			b2=g2.lanceurDeplacerCases(BAS, false); 
 			if (b2 && g2.getScore()>=scoreMax){
-				scoreMax=g2.getScore();
 				direction= BAS;
 			}
-			b2 = g.lanceurDeplacerCases(direction, true);
-			max.setText(Integer.toString(g.getValeurMax()));
-			score.setText(Integer.toString(g.getScore()));
-			deplacement.setText(Integer.toString(Integer.parseInt(deplacement.getText()) + 1));
-			if (g.partieFinie()) {
-				g.gameOver(fond);
-			}
-			if (mess.isVisible()){
-				mess.setVisible(false);
-				messa.setVisible(false);
-			}
-			if (g.getValeurMax()>=obj){
-				Object[] messVic=g.victory(fond);
-				mess=(Label) messVic[0];
-				messa=(Pane) messVic[1];
-				obj*=2;
-				objectif.setText(Integer.toString(obj));
-			}
-			if (b2) {
-				g.nouvelleCase(fond);
-			}
+			lancerDeplacerCase(direction);
 		}
 		g.gameOver(fond);
 	}
+	
+	/**
+	 * Lanceur du deplacement normal clavier. Lorsque l'utilisateur appuie sur le clavier.
+	 * Si c'est possible, le deplacement est fait dans la direction demandée.
+	 * La touche "q" correspond à un deplacement vers la gauche.
+	 * La touche "d" correspond à un deplacement vers la droite.
+	 * La touche "s" correspond à un deplacement vers le bas.
+	 * La touche "z" correspond à un deplacement vers le haut.
+	 */
     @FXML
-    public void keyPressed(KeyEvent ke) {	//Lorsque l'utilisateur appuie sur une touche
+    public void keyPressed(KeyEvent ke) {	
         String touche = ke.getText();
 		int direction=0;
-        if (touche.compareTo("q") == 0) {
+        if (touche.compareTo("q") == 0) {			//On recupère la touche appuyée et on l'associe à une direction
 			direction= GAUCHE; 
         } else if (touche.compareTo("d") == 0) { 
 			direction= DROITE;
@@ -221,27 +214,7 @@ public class FXMLDocumentController implements Initializable, Parametres{
 		} else if (touche.compareTo("z") == 0) {
 			direction = HAUT;
 		}
-		boolean b2 = g.lanceurDeplacerCases(direction, true);		//On effectue le deplacement
-		max.setText(Integer.toString(g.getValeurMax()));			//On met à jour les Labels
-		score.setText(Integer.toString(g.getScore()));
-		deplacement.setText(Integer.toString(Integer.parseInt(deplacement.getText()) + 1));
-		if (g.partieFinie()) { //Si la partie est perdue
-			g.gameOver(fond);
-		}
-		if (mess.isVisible()){	//Permet de supprimer le message de victoire lorsque l'utilisateur continue à jouer
-			mess.setVisible(false);
-			messa.setVisible(false);
-		}
-		if (g.getValeurMax()>=obj){
-			Object[] messVic=g.victory(fond);
-			mess=(Label) messVic[0];
-			messa=(Pane) messVic[1];
-			obj*=2;
-			objectif.setText(Integer.toString(obj));
-		}
-		if (b2) {
-			g.nouvelleCase(fond);
-		}
+		lancerDeplacerCase(direction);
         /*Task task = new Task<Void>() { // on définit une tâche parallèle pour mettre à jour la vue
             @Override
             public Void call() throws Exception { // implémentation de la méthode protected abstract V call() dans la classe Task
@@ -271,4 +244,34 @@ public class FXMLDocumentController implements Initializable, Parametres{
         th.setDaemon(true); // le Thread s'exécutera en arrière-plan (démon informatique)
         th.start(); // et on exécute le Thread pour mettre à jour la vue (déplacement continu de la tuile horizontalement)*/
     }
+	
+	/**
+	 * Lanceur du deplacement. Il deplace les tuiles et met à jour l'interface graphique.
+	 * @param direction Direction dans laquelle se fait le deplacement. 
+	 */
+	private void lancerDeplacerCase(int direction){
+		boolean b2 = g.lanceurDeplacerCases(direction, true);		/*On effectue le vrai deplacement 
+															dans la direction qui a été retenue*/
+		max.setText(Integer.toString(g.getValeurMax()));	//On met à jour les labels
+		score.setText(Integer.toString(g.getScore()));
+		deplacement.setText(Integer.toString(Integer.parseInt(deplacement.getText()) + 1));
+		if (g.partieFinie()) {						//Si la partie est perdue
+			g.gameOver(fond);
+		}
+		if (mess.isVisible()){						/*Permet de supprimer le message de victoire 
+													lorsque l'utilisateur continue à jouer*/
+			mess.setVisible(false);
+			messa.setVisible(false);
+		}
+		if (g.getValeurMax()>=obj){					//Si il a atteint l'objectif
+			Object[] messVic=g.victory(fond);		//On recupere le Label et le Pane dans un tableau
+			mess=(Label) messVic[0];			
+			messa=(Pane) messVic[1];
+			obj*=2;									//L'objectif double
+			objectif.setText(Integer.toString(obj));
+		}
+		if (b2) {
+			g.nouvelleCase(fond);					//On ajoute une nouvelle case
+		}
+	}
 }

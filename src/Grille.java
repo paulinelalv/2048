@@ -1,10 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,16 +10,34 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 
 /**
- *
- * @author Guy Ju
+ * Objet qui représente la grille de jeu.
+ * @author Guy Junior
  */
 public class Grille implements Parametres, Cloneable {
 
+	/**
+	 * La grille de jeu.
+	 */
     private HashSet<Case> grille;
+	
+	/**
+	 * Correspond à la valeur de la tuile maximum dans la grille.
+	 */
     private int valeurMax = 0;
+	
+	/**
+	 * Le score du joueur.
+	 */
 	private int score;
+	
+	/**
+	 * Si le deplacement est possible ou pas.
+	 */
     private boolean deplacement;
-
+	
+	/**
+	 * Constucteur de la grille.
+	 */
     public Grille() {
         this.grille = new HashSet<>();
 		score=0;
@@ -68,7 +79,11 @@ public class Grille implements Parametres, Cloneable {
 	public int getScore(){
 		return score;
 	}
-
+	
+	/**
+	 * Permet de savoir si la partie est terminée.
+	 * @return True si la partie est terminée, false sinon. 
+	 */
     public boolean partieFinie() {
         if (this.grille.size() < TAILLE * TAILLE) {
             return false;
@@ -85,10 +100,19 @@ public class Grille implements Parametres, Cloneable {
         }
         return true;
     }
-
-    public boolean lanceurDeplacerCases(int direction, boolean valider) {	//valider sert à dire on applique le deplacement
+	
+	/**
+	 * Le lanceur du deplacement dans une direction donnée.
+	 * @param direction Direction dans laquelle on veut effectuer le deplacement.
+	 * @param valider False si le deplacement est une simulation. 
+	 * Dans ce cas on ne modifie pas l'interface graphique. 
+	 * Si True, le deplacement se fait normalement avec la modification de l'interface graphique. 
+	 * @return True si le deplacement est possible. False sinon. 
+	 */
+    public boolean lanceurDeplacerCases(int direction, boolean valider) {	
         Case[] extremites = this.getCasesExtremites(direction);
-        deplacement = false; // pour vérifier si on a bougé au moins une case après le déplacement, avant d'en rajouter une nouvelle
+        deplacement = false;					/* pour vérifier si on a bougé au moins une tuile 
+												après le déplacement, avant d'en rajouter une nouvelle*/
         for (int i = 0; i < TAILLE; i++) {
             switch (direction) {
                 case HAUT:
@@ -107,16 +131,32 @@ public class Grille implements Parametres, Cloneable {
         }
         return deplacement;
     }
-
+	
+	/**
+	 * Fusionne deux tuiles si elles ont la même valeur.
+	 * @param c Nouvelle tuile qui correspond à la fusion des deux autres.
+	 * @param valider False si le deplacement est une simulation. 
+	 * Dans ce cas, on ne modifie pas l'interface graphique.
+	 */
     private void fusion(Case c, boolean valider) {
-		score+=(c.getValeur() * 2);		//Le score est incrementer de la valeur de la nouvelle tuile
-        c.setValeur(c.getValeur() * 2, valider);
-        if (this.valeurMax < c.getValeur()) {
+		score+=(c.getValeur() * 2);					//Le score est incrementer de la valeur de la nouvelle tuile
+        c.setValeur(c.getValeur() * 2, valider);	//On modifie la valeur de la tuile
+        if (this.valeurMax < c.getValeur()) {		//On met à jour eventuellement la valeur Max de la grille
             this.valeurMax = c.getValeur();
         }
         deplacement = true;
     }
-
+	
+	/**
+	 * Deplace les tuiles les unes après les autres. 
+	 * Utilise la recursivité pour parcourir toutes les tuiles.
+	 * @param extremites Tableau qui contient les tuiles qui sont à l'extremité du tableau dans la direction donnée.
+	 * @param rangee Correspond au numero de la rangee dans laquelle on travaille.
+	 * @param direction	Direction dans laquelle on veux deplacer les tuiles.
+	 * @param compteur Compteur qui permet de deplacer toutes les tuiles de la rangee grâce à la récursivité.
+	 * @param valider False si le deplacement est une simulation. 
+	 * Dans ce cas, on ne modifie pas l'interface graphique.
+	 */
     private void deplacerCasesRecursif(Case[] extremites, int rangee, int direction, int compteur, boolean valider) {
         if (extremites[rangee] != null) {
             if ((direction == HAUT && extremites[rangee].getY() != compteur)
@@ -147,7 +187,8 @@ public class Grille implements Parametres, Cloneable {
                     this.fusion(extremites[rangee], valider);
                     extremites[rangee] = voisin.getVoisinDirect(-direction);
                     this.grille.remove(voisin);
-					if (valider){	//On modifie l'interface graphique que si la coup n'est pas une simulation
+					if (valider){					/*On modifie l'interface graphique que 
+													si la coup n'est pas une simulation*/
 						voisin.masquer();
 					}
                     this.deplacerCasesRecursif(extremites, rangee, direction, compteur + 1, valider);
@@ -166,6 +207,12 @@ public class Grille implements Parametres, Cloneable {
     * Si direction = GAUCHE : retourne les 4 cases qui sont le plus à gauche (une pour chaque ligne)
     * Attention : le tableau retourné peut contenir des null si les lignes/colonnes sont vides
      */
+	
+	/**
+	 * Renvoie les tuiles qui sont à l'extermité du tableau dans une direction donnée.
+	 * @param direction Direction dans laquelle on veut deplacer les tuiles. 
+	 * @return Tableau qui contient les tuiles qui sont à l'extrémité. 
+	 */
     public Case[] getCasesExtremites(int direction) {
         Case[] result = new Case[TAILLE];
         for (Case c : this.grille) {
@@ -194,7 +241,12 @@ public class Grille implements Parametres, Cloneable {
         }
         return result;
     }
-
+	
+	/**
+	 * Affiche un message lorsque l'utilisateur a atteint l'objectif.
+	 * @param fond Fenetre dans laquelle est affichée le message.
+	 * @return Tableau contenant la fenetre et le message à afficher. 
+	 */
     public Object[] victory(Pane fond) {
 		Object[] sortie= new Object[2];		//On retourne le Pane et le Label dans un tableau afin de retourner les deux
         System.out.println("Bravo ! Vous avez atteint " + this.valeurMax);
@@ -204,16 +256,20 @@ public class Grille implements Parametres, Cloneable {
 		p.getStyleClass().add("panneauVic");
         fond.getChildren().add(p);
         p.getChildren().add(l);
-		p.setLayoutX(25);		//On les place
+		p.setLayoutX(25);				//On les place
         p.setLayoutY(350);
-		p.setVisible(true);		//On les affiche
+		p.setVisible(true);				//On les affiche
         l.setVisible(true);
 		sortie[0]=l;
 		sortie[1]=p;
 		return sortie;
         //System.exit(0);
     }
-
+	
+	/**
+	 * Affiche un message lorsque l'utilisateur a perdu.
+	 * @param fond Fenetre dans laquelle est affichée le message.
+	 */
     public void gameOver(Pane fond) {
         System.out.println("La partie est finie. Votre score est " + this.valeurMax);
 		Pane p = new Pane();
@@ -228,7 +284,12 @@ public class Grille implements Parametres, Cloneable {
         l.setVisible(true);
         //System.exit(1);
     }
-
+	
+	/**
+	 * Ajoute une nouvelle tuile dans la grille.
+	 * @param fond Fenetre du jeu
+	 * @return La nouvelle tuile qui vient d'être créée
+	 */
     public Case nouvelleCase(Pane fond) {
         if (this.grille.size() < TAILLE * TAILLE) {
             ArrayList<Case> casesLibres = new ArrayList<>();
@@ -248,7 +309,9 @@ public class Grille implements Parametres, Cloneable {
             ajout.setGrille(this);
 			ajout.rendreVisible();
             this.grille.add(ajout);
-            if ((this.grille.size() == 1) || (this.valeurMax == 2 && ajout.getValeur() == 4)) { // Mise à jour de la valeur maximale présente dans la grille si c'est la première case ajoutée ou si on ajoute un 4 et que l'ancien max était 2
+			/* Mise à jour de la valeur maximale présente dans la grille si c'est la première case ajoutée 
+			ou si on ajoute un 4 et que l'ancien max était 2*/
+            if ((this.grille.size() == 1) || (this.valeurMax == 2 && ajout.getValeur() == 4)) { 
                 this.valeurMax = ajout.getValeur();
             }
             return ajout;
@@ -256,9 +319,12 @@ public class Grille implements Parametres, Cloneable {
 		return null;
     }
 
-	
-	public Object clone() {		//Permet de faire une copie de la grille
-		Grille o = new Grille();	//On créé une nouvelle grille
+	/**
+	 * Fait une copie de la grille.
+	 * @return Copie de la grille.
+	 */
+	public Object clone() {	
+		Grille o = new Grille();		//On créé une nouvelle grille
 		o.score=this.score;
 		for (Case i : this.grille){
 			Case i2= (Case) i.clone();	//On copie chaque case de la grille
